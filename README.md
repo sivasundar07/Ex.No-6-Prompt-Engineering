@@ -13,9 +13,69 @@ Analyze the response and the Output.
 The aim is to understand how to request help from AI tools for tasks like writing Python code, integrating with APIs, comparing outputs, and generating actionable insights.
 
 INPUT:
+~~~
+import requests
 
-import requests import pandas as pd from tabulate import tabulate # --------------------------------------------------- # API CONFIGURATION # --------------------------------------------------- OPENAI_API_KEY = "YOUR_OPENAI_API_KEY" HUGGINGFACE_API_KEY = "YOUR_HUGGINGFACE_API_KEY" # --------------------------------------------------- # FUNCTION TO ACCESS OPENAI API # --------------------------------------------------- def get_openai_response(prompt): url = "https://api.openai.com/v1/chat/completions" headers = { "Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json" } payload = { "model": "gpt-4o-mini", "messages": [ {"role": "user", "content": prompt} ], "temperature": 0.7 } response = requests.post(url, headers=headers, json=payload) if response.status_code == 200: data = response.json() return data['choices'][0]['message']['content'] else: return f"Error: {response.status_code}" # --------------------------------------------------- # FUNCTION TO ACCESS HUGGINGFACE API # --------------------------------------------------- def get_huggingface_response(prompt): API_URL = "https://api-inference.huggingface.co/models/gpt2" headers = { "Authorization": f"Bearer {HUGGINGFACE_API_KEY}" } payload = { "inputs": prompt } response = requests.post(API_URL, headers=headers, json=payload) if response.status_code == 200: data = response.json() if isinstance(data, list): return data[0]['generated_text'] else: return str(data) else: return f"Error: {response.status_code}" # --------------------------------------------------- # FUNCTION TO COMPARE RESPONSES # --------------------------------------------------- def compare_outputs(outputs): comparison = [] for tool, response in outputs.items(): word_count = len(response.split()) comparison.append({ "AI Tool": tool, "Word Count": word_count, "Response Preview": response[:100] }) return pd.DataFrame(comparison) # --------------------------------------------------- # FUNCTION TO GENERATE INSIGHTS # --------------------------------------------------- def generate_insights(df): insights = [] max_words = df['Word Count'].max() min_words = df['Word Count'].min() verbose_tool = df[df['Word Count'] == max_words]['AI Tool'].values[0] concise_tool = df[df['Word Count'] == min_words]['AI Tool'].values[0] insights.append(f"{verbose_tool} generated the most detailed response.") insights.append(f"{concise_tool} generated the most concise response.") avg_words = df['Word Count'].mean() insights.append(f"Average response size: {avg_words:.2f} words.") return insights # --------------------------------------------------- # MAIN PROGRAM # --------------------------------------------------- def main(): prompt = input("Enter your AI query: ") print("\nCollecting responses from AI tools...\n") openai_output = get_openai_response(prompt) hf_output = get_huggingface_response(prompt) outputs = { "OpenAI": openai_output, "HuggingFace": hf_output } # Display Responses for tool, response in outputs.items(): print("=" * 60) print(f"{tool} RESPONSE") print("=" * 60) print(response) print("\n") # Compare Outputs df = compare_outputs(outputs) print("=" * 60) print("COMPARISON TABLE") print("=" * 60) print(tabulate(df, headers='keys', tablefmt='grid')) # Generate Insights insights = generate_insights(df) print("\n") print("=" * 60) print("ACTIONABLE INSIGHTS") print("=" * 60) for i, insight in enumerate(insights, start=1): print(f"{i}. {insight}") # --------------------------------------------------- # RUN PROGRAM # --------------------------------------------------- if __name__ == "__main__": main()
+# API Keys
+OPENAI_API_KEY = "YOUR_OPENAI_API_KEY"
+HUGGINGFACE_API_KEY = "YOUR_HUGGINGFACE_API_KEY"
 
+# User Prompt
+prompt = input("Enter Prompt: ")
+
+# ---------------- OPENAI ----------------
+openai_url = "https://api.openai.com/v1/chat/completions"
+
+openai_headers = {
+    "Authorization": f"Bearer {OPENAI_API_KEY}",
+    "Content-Type": "application/json"
+}
+
+openai_data = {
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": prompt}]
+}
+
+openai_response = requests.post(
+    openai_url,
+    headers=openai_headers,
+    json=openai_data
+)
+
+openai_text = openai_response.json()['choices'][0]['message']['content']
+
+# ---------------- HUGGINGFACE ----------------
+hf_url = "https://api-inference.huggingface.co/models/gpt2"
+
+hf_headers = {
+    "Authorization": f"Bearer {HUGGINGFACE_API_KEY}"
+}
+
+hf_data = {
+    "inputs": prompt
+}
+
+hf_response = requests.post(
+    hf_url,
+    headers=hf_headers,
+    json=hf_data
+)
+
+hf_text = hf_response.json()[0]['generated_text']
+
+# ---------------- RESULTS ----------------
+print("\nOpenAI Output:\n")
+print(openai_text)
+
+print("\nHuggingFace Output:\n")
+print(hf_text)
+
+# ---------------- COMPARISON ----------------
+if len(openai_text) > len(hf_text):
+    print("\nInsight: OpenAI gave a more detailed response.")
+else:
+    print("\nInsight: HuggingFace gave a more detailed response.")
+~~~
 OUTPUT:
 ~~~
 Sample Input
