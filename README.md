@@ -102,3 +102,4 @@ reducing errors, and supporting doctors with intelligent systems.
 
 
 Result: 
+Thus, Python code compatible with multiple AI tools was successfully developed and implemented. Responses from different AI systems were obtained, compared, and analyzed to generate meaningful insights. The experiment demonstrated the use of API integration and comparative analysis using Python.
